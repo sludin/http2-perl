@@ -1,5 +1,7 @@
 Version 0.02;
 
+Notice: Work in progress and in approprate for human consumption.
+
 -------------------------
 
 This is far from finished and I apologize for its lack of
