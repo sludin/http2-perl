@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Test::More;
 
-plan tests => 15;
+plan tests => 13;
 
 sub not_in_file_ok {
     my ($filename, %regex) = @_;
@@ -61,8 +61,6 @@ TODO: {
   module_boilerplate_ok('lib/HTTP2/Draft/Stream.pm');
   module_boilerplate_ok('lib/IO/Async/HTTP2/Framer.pm');
   module_boilerplate_ok('lib/IO/Async/HTTP2/FramerStream.pm');
-  module_boilerplate_ok('lib/IO/Async/SPDY/Framer.pm');
-  module_boilerplate_ok('lib/IO/Async/SPDY/Server.pm');
 
 
 }
