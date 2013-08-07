@@ -1,0 +1,12 @@
+Revision history for HTTP2-Draft
+
+0.01    July 22, 2013
+        First version, base functionality
+
+0.02    August 1, 2013
+        Header compression improved
+
+0.03    Wed Aug  7 05:47:13 PDT 2013
+        Header compression refactored
+        Made more 'perl like'
+        Added more CPAN expected structure

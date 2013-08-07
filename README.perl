@@ -1,134 +1,54 @@
-package HTTP2::Draft;
+Note: this readme is boiler plate only.  Once this installs
+as a proper perl module I will merge the two README files.
 
-use 5.008;
-use strict;
-use warnings FATAL => 'all';
+HTTP2-Draft
 
-=head1 NAME
+The README is used to introduce the module and provide instructions on
+how to install the module, any machine dependencies it may have (for
+example C compilers and installed libraries) and any other information
+that should be provided before the module is installed.
 
-HTTP2::Draft
-
-=head1 VERSION
-
-Version 0.03
-
-=cut
-
-our $VERSION = '0.03';
+A README file is required for CPAN modules since CPAN extracts the README
+file from a module distribution so that people browsing the archive
+can use it to get an idea of the module's uses. It is usually a good idea
+to provide version information here so that people can decide whether
+fixes for the module are worth downloading.
 
 
-sub http_version
-{
-  return "HTTP-draft-04/2.0";
-}
+INSTALLATION
 
-sub hex_print
-{
-  my $data = shift;
-  my $style = shift || "0";
+To install this module, run the following commands:
 
-  my $n = 0;
+	perl Makefile.PL
+	make
+	make test
+	make install
 
-  my ( @hex ) = unpack( "(H2)*", $data );
+SUPPORT AND DOCUMENTATION
 
-  for ( @hex ) {
-    if ( $n % 4 == 0 ) {
-      printf( "\n%04X ", $n );
-    }
-    print "$_ ";
-
-    if ( $style == 1 ) {
-      if ( hex($_) >= 32 and hex($_) < 127 ) {
-        print "\'", chr(hex($_)), "\' ";
-      }
-      else {
-        print "    ";
-      }
-    }
-
-
-    $n++;
-  }
-  print "\n";
-}
-
-
-
-
-=head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
-    use HTTP2::Draft;
-
-    my $foo = HTTP2::Draft->new();
-    ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
-
-=cut
-
-
-
-
-=head1 AUTHOR
-
-Stephen Ludin, C<< <sludin at ludin.org> >>
-
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-http2-draft at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=HTTP2-Draft>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
+After installing, you can find documentation for this module with the
+perldoc command.
 
     perldoc HTTP2::Draft
 
-
 You can also look for information at:
 
-=over 4
+    RT, CPAN's request tracker (report bugs here)
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=HTTP2-Draft
 
-=item * RT: CPAN's request tracker (report bugs here)
+    AnnoCPAN, Annotated CPAN documentation
+        http://annocpan.org/dist/HTTP2-Draft
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=HTTP2-Draft>
+    CPAN Ratings
+        http://cpanratings.perl.org/d/HTTP2-Draft
 
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/HTTP2-Draft>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/HTTP2-Draft>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/HTTP2-Draft/>
-
-=back
+    Search CPAN
+        http://search.cpan.org/dist/HTTP2-Draft/
 
 
-=head1 ACKNOWLEDGEMENTS
+LICENSE AND COPYRIGHT
 
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2013 Stephen Ludin.
+Copyright (C) 2013 Stephen Ludin
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a
@@ -166,7 +86,3 @@ CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
 CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-=cut
-
-1; # End of HTTP2::Draft

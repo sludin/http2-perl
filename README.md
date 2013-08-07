@@ -1,4 +1,4 @@
-Version 0.02;
+Version 0.03;
 
 Notice: Work in progress and in approprate for human consumption.
 
