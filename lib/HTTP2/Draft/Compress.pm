@@ -17,7 +17,7 @@ my $debug_compression = 0;
 sub debug
 {
   if ( $debug_compression ) {
-    print @_;
+    print @_, "\n";
   }
 }
 
@@ -61,54 +61,6 @@ sub encode_len_string
   return encode_int(length( $string ),0), unpack( "C*", $string );
 }
 
-sub decode_int
-{
-  my $bytes = shift;
-  my $pos = shift;
-  my $bits = shift;
-
-#print Dumper( $bytes );
-
-  my $i = $pos;
-
-  my $max = (2 ** $bits) - 1;
-
-#print $max, "\n";
-
-  my $I;
-
-  my $n = 0;
-
-  if ( $bytes->[$i] < $max )
-  {
-    return wantarray ? ($bytes->[$i], 1) : $bytes->[$i];;
-  }
-  else
-  {
-    $I = $bytes->[$i] if $max;
-    # print "byte: ", $bytes->[$i], "\n";
-
-    for ( ; ;  )
-    {
-      $i++;
-      # print "byte: ", $bytes->[$i], "\n";
-      if ( $bytes->[$i] & 0x80 )
-      {
-        $I += ($bytes->[$i] & 0x7F) * (128 ** $n);
-      }
-      else
-      {
-        $I += $bytes->[$i] * (128 ** $n);
-        last;
-      }
-      $n++;
-    }
-  }
-
-#print "I = $I\n";
-
-  return wantarray ? ($I, ($i - $pos) + 1) : $I;
-}
 
 sub encode_int
 {
@@ -265,131 +217,202 @@ sub deflate
 
 }
 
-sub extract_string
+
+sub extract_string2
 {
-  my $block = shift;
-  my $pos = shift;
-  my $i = $pos;
+  my $bytes_ref = shift;
 
-  my $len = $block->[$pos];
-  $i++;
+  my $len = decode_int2( $bytes_ref, 7 );
+  my $string = pack( "c*", @{$bytes_ref}[0 .. ($len)-1] );
 
+  # Consume the bytes
+  splice( @$bytes_ref, 0, $len );
 
-  my $string = pack( "c*", @{$block}[$i .. ($i + $len)-1] );
-
-  $i += $len;
-
-  return ( $string, $i - $pos );
+  return $string;
 }
 
 
-sub extract_nv
+sub extract_nv2
 {
-  my $block = shift;
-  my $pos = shift;
-  my $i = $pos;
+  my $bytes_ref = shift;
 
-  my $nlen = $block->[$pos];
-  $i++;
+  my $name = extract_string2( $bytes_ref );
+  my $value = extract_string2( $bytes_ref );
 
-  my $name = pack( "c*", @{$block}[$i .. $i + $nlen] );
-  $i += $nlen;
-  my $vlen = $block->[$i];
-  my $value = pack( "c*", @{$block}[$i .. $i + $vlen] );
-  $i += $vlen;
+  return ( $name, $value );
+}
 
-  return ( $name, $value, $i - $pos );
+sub decode_int2
+{
+  my $bytes_ref = shift;
+  my $bits = shift;
+
+  my $max = (2 ** $bits) - 1;
+
+  my $I = shift @$bytes_ref;
+
+  # If the first byte is less that $max then that is the decoded int
+  if ( $I < $max )
+  {
+    return $I;
+  }
+  else
+  {
+     my $n = 0;
+
+     my $byte;
+     while ( ($byte = shift @$bytes_ref) & 0x80  )
+     {
+       $I += ($byte & 0x7F) * (128 ** $n);
+       $n++;
+     }
+
+     $I += $byte * (128 ** $n);
+   }
+
+  return $I;
+}
+
+sub get_token
+{
+  my $bytes_ref = shift;
+
+  return if ( @$bytes_ref == 0 );
+
+  my $op = shift @$bytes_ref;
+
+  my $token = {
+               op => 0,
+               index         => undef,
+               name_index    => undef,
+               name_literal  => undef,
+               value_literal => undef
+              };
+
+  $token->{op} = $op;
+
+
+
+  if ( ($op & 0x80) == 0x80 )
+  {
+    debug( "Literal index\n" );
+
+    # put the 7 bit index start back on the array
+    unshift @$bytes_ref, $op &= 0x7F;
+
+    my $I = decode_int2( $bytes_ref, 7 );
+
+    $token->{index} = $I;
+  }
+  elsif ( ($op & 0xE0) == 0x60 )
+  {
+    die "Should not be here yet";
+  }
+  elsif ( ($op & 0xE0) == 0x40 )
+  {
+    debug( "Literal Header with Incremental Indexing" );
+
+    if ( $op == 0x40 ) {
+      debug( "  Full literal name and value" );
+
+      my ( $name, $value ) = extract_nv2( $bytes_ref );
+
+
+
+      $token->{name_literal} = $name;
+      $token->{value_literal} = $value;
+    }
+    else {
+      debug( "  Indexed Header, literal value" );
+
+      unshift @$bytes_ref, $op & 0x1F;
+
+      # Subtracting one from the wired int
+      my $I = decode_int2( $bytes_ref, 5 ) - 1;
+
+      my $value = extract_string2( $bytes_ref );
+
+
+
+      $token->{name_index} = $I;
+      $token->{value_literal} = $value;
+    }
+  }
+  elsif ( ($op & 0xC0) == 0x00 )
+  {
+    debug( "Literal Header with Substitution Indexing\n" );
+
+    push @$bytes_ref, $op;
+
+    my $index = decode_int2( $bytes_ref, 6 ) - 1;
+    my $substituted_index = decode_int2( $bytes_ref, 8 );
+    my $value = extract_string2( $bytes_ref );
+  }
+  else
+  {
+    die( "Unrecognized instruction: %02x\n", $op );
+  }
+
+  return $token;
 }
 
 sub inflate
 {
-  my $self   = shift;
-  my $block = shift;
+  my $self    = shift;
+  my $block   = shift;
   my $headers = {};
+
+  my @bytes = unpack( "C*", $block );
 
   my $ws;
 
-  HTTP2::Draft::hex_print( $block, 1 );
 
-  my @b = unpack( "C*", $block );
-
-
-  for ( my $i = 0; $i < scalar(@b); $i++ )
+  while( my $token = get_token( \@bytes ) )
   {
+    my $op = $token->{op};
 
-    #printf ( "Instruction: %02x\n", $b[$i] );
+    if ( ($op & 0x80) == 0x80 ) {
 
-    #printf ( "%02X\n", $b[$i] & 0xE0 );
+      my $index = $token->{index};
 
-    debug( "opcode: " . sprintf( "%02X", $b[$i] ) . "\n" );
+      my $entry = $self->{index}->find_i($index);
 
-    my ( $name, $value, $length );
-    if ( ($b[$i] & 0x80) == 0x80 )
-    {
+      debug( "Literal index: $index" );
 
-      $b[$i] &= 0x7F;
-
-
-      my ($I, $n) = decode_int( \@b, $i, 7 );
-#      $I--;
-
-      $i += ($n-1);
-
-      debug( "Literal index: $I\n" );
-
-      my $entry = $self->{index}->find_i($I);
-
-      if ( ! $entry )
-      {
-        die "Entry $I not found in index";
+      if ( ! $entry ) {
+        die "Entry $index not found in index";
       }
 
-      $name = $entry->[1];
-      $value = $entry->[2];
+      my $name  = $entry->[1];
+      my $value = $entry->[2];
 
       my $nvkey = "$name:$value";
       $ws->{$nvkey} = { indexed => 1,
                         value   => $value,
                         name    => $name };
-
     }
-    elsif ( ($b[$i] & 0xE0) == 0x60 )
-    {
-      $i++;
-      die "Should not be here yet";
-
-      ( $name, $value, $length ) = extract_nv( \@b, $i );
-      $i += $length;
+    elsif ( ($op & 0xE0) == 0x60 ) {
+      die "Not implemented.  Yet";
     }
-    elsif ( ($b[$i] & 0xE0) == 0x40 )
-    {
+    elsif ( ($op & 0xE0) == 0x40 ) {
       debug( "Literal Header with Incremental Indexing\n" );
 
-      if ( $b[$i] == 0x40 )
-      {
-        debug( "Full literal name:value\n" );
-        $i++;
-        ( $name, $value, $length ) = extract_nv( \@b, $i );
-        $i += $length;
+      my $name;
+      my $value;
+
+      if ( $op == 0x40 ) {
+        debug( "  Full literal name:value\n" );
+
+        $name = $token->{name_literal};
+        $value = $token->{value_literal};
       }
-      else
-      {
-        $b[$i] &= 0x1F;
+      else {
+        my $index = $token->{name_index};
 
-        my ( $I, $n ) = decode_int( \@b, $i, 5 );
-        $I--;
-
-        debug( "Indexed header: index = $I\n" );
-
-        my $entry = $self->{index}->find_i( $I );
+        my $entry = $self->{index}->find_i( $index );
 
         $name = $entry->[1];
-
-        $i += $n;
-        ($value, $length) = extract_string( \@b, $i );
-        $i += $length;
-
-        $i--;
+        $value = $token->{value_literal};
       }
 
       my $nvkey = "$name:$value";
@@ -398,40 +421,26 @@ sub inflate
                         name    => $name };
 
       $self->{index}->store_nv( $name, $value );
-
     }
-    elsif ( ($b[$i] & 0xC0) == 0x00 )
-    {
+    elsif ( ($op & 0xC0) == 0x00 )  {
       debug( "Literal Header with Substitution Indexing\n" );
-#      $i++;
-
-#      die "Should not be here yet";
 
       my $index;
       my $substituted_index;
       my $n;
+      my $name;
+      my $value;
 
 
-      ( $index, $n ) = decode_int(\@b, $i, 6 );
-      $index--;
-      $i += $n;
+      $index = $token->{index};
+      $substituted_index = $token->{substituted_index};
 
       my $entry = $self->{index}->find_i( $index );
-      ( $substituted_index, $n ) = decode_int( \@b, $i, 8 );
-      $i += $n;
 
-#print "I = $I\n";
-#print Dumper( $entry );
+      $name = $entry->[1];
 
-      my $name = $entry->[1];
+      $value = $token->{value_literal};
 
-      ($value,$length) = extract_string( \@b, $i );
-#print length( $value ), " ", $length, "\n";
-#text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-
-print "length = $length\n";
-
-      $i += $length;
 
       $self->{index}->store_nvi( $name, $value, $substituted_index );
 
@@ -443,62 +452,35 @@ print "length = $length\n";
                         name    => $name };
 
 
-#      print $nvkey, "\n";
-
-#      printf( "%02X\n", $b[$i] );
-
-      $i--; # TODO: Stupid.  Decrement because I increment in the for loop.  Stupid.
-
-#print "name = $name, $value = $value\n";
-
-#      $i += $length;
-
     }
-    else
-    {
-      printf ( "Unrecognized instruction: %02x\n", $b[$i] );
+    else {
+      die ( "Unrecognized instruction: %02x\n", $op );
     }
-
-#    print "$name: $value\n";
-
   }
-
-#print Dumper( $ws );
-#print Dumper( $self->{reference} );
 
   for my $nvkey ( keys %$ws )
   {
     my ( $n, $v ) = $nvkey =~ /^(:?[^:]+):(.*)/;
 
-#    if ( exists $self->{reference}->{$n} &&
-#         $self->{reference}->{$n}->{indexed} )
-#    {
-#      delete $self->{reference}->{$n};
-#    }
-#    else
-#    {
+    if ( exists $self->{reference}->{$n} &&
+         $self->{reference}->{$n}->{indexed} )
+    {
+      delete $self->{reference}->{$n};
+    }
+    else
+    {
       $self->{reference}->{$n} = $ws->{$nvkey};
-#    }
+    }
   }
 
   for my $n ( keys %{$self->{reference}} )
   {
     my $v = $self->{reference}->{$n}->{value};
 
-#    print "$n: $v\n ";
-
-#    my ( $n, $v ) = $nvkey =~ /^(:?[^:]+):(.*)/;
     $headers->{$n} = $v;
-#        print "$nvkey name = $n, value = $v\n";
   }
 
-
-#print Dumper( $headers );
-
   return $headers;
-  #  print "\n";
-
-
 }
 
 
