@@ -12,6 +12,7 @@ use Data::Dumper;
 use HTTP2::Draft::HeaderIndex;
 
 
+
 =head1 NAME
 
 HTTP2::Draft::Compress
@@ -145,7 +146,7 @@ sub deflate
 
       if ( ! exists $self->{reference}->{$nvkey} )
       {
-        debug( "Deflate: Not found in reference set.  Adding to transmitted headers\n" );
+        debug( "Deflate: Not found in reference set.  Adding to transmitted headers" );
 
         # TODO: this needs integer ecoding.  For testing as long as we stay under 127 we shoudl be OK
         push @tmp, ($entry->[0]) | 0x80;
@@ -155,13 +156,13 @@ sub deflate
     {
       # need to do a literal representation
       # let's only do incremental indexed for now ( 0x40 )
-      debug( "Deflate: Did not find full pair in table.  Doing a literal representation\n" );
+      debug( "Deflate: Did not find full pair in table.  Doing a literal representation" );
 
       my $i = $self->{index}->find_n( $name );
 
       if ( $i != -1 )
       {
-        debug( "Deflate: Found header name.  Including header name index: index = $i\n" );
+        debug( "Deflate: Found header name.  Including header name index: index = $i" );
 
         my @t = encode_int( $i + 1, 5 );
         $t[0] |= 0x40;
@@ -170,7 +171,7 @@ sub deflate
       }
       else
       {
-        debug( "Deflate: New header name.  Encoding header name as string\n" );
+        debug( "Deflate: New header name.  Encoding header name as string" );
 
         push @tmp, 0x40;
         push @tmp, encode_len_string( $name );
@@ -192,9 +193,11 @@ sub deflate
       #      }
     }
 
-    #debug( "Deflate: Adding:\n" );
-    #debug( "Deflate: " );
-    #HTTP2::Draft::hex_print( pack "C*", @tmp ) if $debug_compression;;
+ #   print Dumper( \@hblock );
+
+    debug( "Deflate: Adding:" );
+    debug( "Deflate: " );
+    HTTP2::Draft::hex_print( pack "C*", @tmp ) if $debug_compression;;
 
     push @hblock, @tmp;
   }
@@ -228,16 +231,17 @@ sub deflate
 
   #HTTP2::Draft::hex_print( pack "C*", @hblock ) if $debug_compression;
 
+  
   return pack "C*", @hblock;
 
 }
 
 
-sub extract_string2
+sub extract_string
 {
   my $bytes_ref = shift;
 
-  my $len = decode_int2( $bytes_ref, 7 );
+  my $len = decode_int( $bytes_ref, 7 );
   my $string = pack( "c*", @{$bytes_ref}[0 .. ($len)-1] );
 
   # Consume the bytes
@@ -247,17 +251,17 @@ sub extract_string2
 }
 
 
-sub extract_nv2
+sub extract_nv
 {
   my $bytes_ref = shift;
 
-  my $name = extract_string2( $bytes_ref );
-  my $value = extract_string2( $bytes_ref );
+  my $name = extract_string( $bytes_ref );
+  my $value = extract_string( $bytes_ref );
 
   return ( $name, $value );
 }
 
-sub decode_int2
+sub decode_int
 {
   my $bytes_ref = shift;
   my $bits = shift;
@@ -315,7 +319,7 @@ sub get_token
     # put the 7 bit index start back on the array
     unshift @$bytes_ref, $op &= 0x7F;
 
-    my $I = decode_int2( $bytes_ref, 7 );
+    my $I = decode_int( $bytes_ref, 7 );
 
     $token->{index} = $I;
   }
@@ -330,7 +334,7 @@ sub get_token
     if ( $op == 0x40 ) {
       debug( "  Full literal name and value" );
 
-      my ( $name, $value ) = extract_nv2( $bytes_ref );
+      my ( $name, $value ) = extract_nv( $bytes_ref );
 
 
 
@@ -343,9 +347,9 @@ sub get_token
       unshift @$bytes_ref, $op & 0x1F;
 
       # Subtracting one from the wired int
-      my $I = decode_int2( $bytes_ref, 5 ) - 1;
+      my $I = decode_int( $bytes_ref, 5 ) - 1;
 
-      my $value = extract_string2( $bytes_ref );
+      my $value = extract_string( $bytes_ref );
 
 
 
@@ -359,9 +363,9 @@ sub get_token
 
     push @$bytes_ref, $op;
 
-    my $index = decode_int2( $bytes_ref, 6 ) - 1;
-    my $substituted_index = decode_int2( $bytes_ref, 8 );
-    my $value = extract_string2( $bytes_ref );
+    my $index = decode_int( $bytes_ref, 6 ) - 1;
+    my $substituted_index = decode_int( $bytes_ref, 8 );
+    my $value = extract_string( $bytes_ref );
   }
   else
   {

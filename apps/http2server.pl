@@ -104,5 +104,7 @@ sub on_request
   my $response = HTTP::Response->new( $code, $msg, $resp_headers, $content );
 
   $server->response( $response, $stream );
+
+#  exit(0);
 }
 

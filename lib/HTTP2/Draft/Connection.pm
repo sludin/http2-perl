@@ -10,8 +10,6 @@ use HTTP2::Draft::Stream;
 use HTTP2::Draft::Log qw ( $log );
 use HTTP2::Draft::Compress;
 
-use IO::Async::Timer::Countdown;
-
 use Carp qw( cluck );
 
 =head1 NAME

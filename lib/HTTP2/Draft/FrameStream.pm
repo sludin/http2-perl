@@ -1,4 +1,4 @@
-package IO::Async::HTTP2::FramerStream;
+package HTTP2::Draft::FrameStream;
 
 use 5.008;
 use strict;
@@ -10,7 +10,7 @@ use HTTP2::Draft::Frame qw( :frames :settings :errors );
 
 =head1 NAME
 
-IO::Async::HTTP2::FramerStream - The great new IO::Async::HTTP2::FramerStream!
+HTTP2::Draft::FrameStream - Frame stream class based on IO::Async::SSLStreams
 
 =head1 VERSION
 
@@ -89,9 +89,9 @@ Quick summary of what the module does.
 
 Perhaps a little code snippet.
 
-    use IO::Async::HTTP2::FramerStream;
+    use HTTP2::Draft::FramerStream;
 
-    my $foo = IO::Async::HTTP2::FramerStream->new();
+    my $foo = HTTP2::Draft::FrameStream->new();
     ...
 
 =head1 EXPORT
@@ -123,7 +123,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc IO::Async::HTTP2::FramerStream
+    perldoc HTTP2::Draft::FramerStream
 
 
 You can also look for information at:
@@ -195,4 +195,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut
 
-1; # End of IO::Async::HTTP2::FramerStream
+1; # End of HTTP2::Draft::FramerStream

@@ -1,10 +1,10 @@
-package IO::Async::HTTP2::Framer;
+package HTTP2::Draft::Framer;
 
 use 5.008;
 use strict;
 use warnings FATAL => 'all';
 
-use IO::Async::HTTP2::FramerStream;
+use HTTP2::Draft::FrameStream;
 
 use HTTP2::Draft::Frame qw ( :frames :settings :errors );
 
@@ -15,11 +15,11 @@ use Data::Dumper;
 
 use HTTP2::Draft;
 use HTTP2::Draft::Log qw( $log );
-use IO::Async::Timer::Countdown;
+
 
 =head1 NAME
 
-IO::Async::HTTP2::Framer - The great new IO::Async::HTTP2::Framer!
+HTTP2::Draft::Framer - Framer based on IO::Async
 
 =head1 VERSION
 
@@ -75,7 +75,7 @@ sub IO::Async::Loop::HTTP2_connect
   my $on_connected = sub {
 
     my ( $handle ) = @_;
-    my $framer = IO::Async::HTTP2::FramerStream->new( handle => $handle );
+    my $framer = HTTP2::Draft::FrameStream->new( handle => $handle );
 
     $log->info( "NPN: ", $framer->{write_handle}->next_proto_negotiated() );
 
@@ -120,7 +120,7 @@ sub IO::Async::Loop::HTTP2_listen
 
     my $conn = $framer->{conn};
 
-#    HTTP2::Draft::hex_print( $$buffref );
+    HTTP2::Draft::hex_print( $$buffref );
 #print Dumper( $framer );
 print "Conn state == $conn->{state}\n";
 
@@ -185,7 +185,7 @@ print "Conn state == $conn->{state}\n";
 
   $params{on_accept} = sub {
     my ( $handle ) = @_;
-    my $framer = IO::Async::HTTP2::FramerStream->new( handle => $handle );
+    my $framer = HTTP2::Draft::FrameStream->new( handle => $handle );
 
     $log->info( "NPN: ", $framer->{write_handle}->next_proto_negotiated() );
 
@@ -219,9 +219,9 @@ Quick summary of what the module does.
 
 Perhaps a little code snippet.
 
-    use IO::Async::HTTP2::Framer;
+    use HTTP2::Draft::Framer;
 
-    my $foo = IO::Async::HTTP2::Framer->new();
+    my $foo = HTTP2::Draft::Framer->new();
     ...
 
 =head1 EXPORT
@@ -253,7 +253,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc IO::Async::HTTP2::Framer
+    perldoc HTTP2::Draft::Framer
 
 
 You can also look for information at:
@@ -325,4 +325,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut
 
-1; # End of IO::Async::HTTP2::Framer
+1; # End of HTTP::Draft::Framer

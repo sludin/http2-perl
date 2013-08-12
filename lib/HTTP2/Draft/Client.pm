@@ -18,10 +18,13 @@ use HTTP2::Draft;
 use HTTP2::Draft::Connection;
 use HTTP2::Draft::Frame qw( :frames :settings :errors );
 use HTTP2::Draft::Log qw( $log );
+use HTTP2::Draft::Framer;
 
 use IO::Async::Loop;
-use IO::Async::HTTP2::Framer;
+use IO::Async::SSL;
 use IO::Async::Timer::Countdown;
+
+#use IO::Socket::SSL;
 
 use Data::Dumper;
 
@@ -119,7 +122,7 @@ sub connect
                                                       settings => { 4 => 100} );
              $conn->write_frame( $settings );
 
-             # TODO: replace this with a short delay
+              # TODO: replace this with a short delay
              #       I want to give the server a chance to send settings.  Or do I?
              #       This will necesitate waiting 1 RTT which is far from ideal.
              #       Instead I should save the settings frmo the server
@@ -132,8 +135,10 @@ sub connect
                                                           );
              $timer->start();
 
-             $loop->add( $framer );
              $loop->add( $timer );
+             $loop->add( $framer );
+
+#             $self->{on_http2_connect}->($self, $framer, $conn );
            },
            on_ssl_error      => \&on_ssl_error,
            on_resolve_error  => \&on_resolve_error,
@@ -242,7 +247,7 @@ sub on_frame
   elsif ( $frame->{type} == SETTINGS ) {
     $conn->handle_settings_frame( $frame );
 
-    Readonly::Scalar my $GHOST_BUG => 1;
+    Readonly::Scalar my $GHOST_BUG => 0;
 
     if ( $GHOST_BUG ) { # GHOST BUG
       my $winup_frame = HTTP2::Draft::Frame->new( WINDOW_UPDATE,

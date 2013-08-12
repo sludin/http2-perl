@@ -10,7 +10,7 @@ use HTTP2::Draft::Frame qw( :frames :settings :errors );
 use HTTP2::Draft::Log qw( $log );
 
 use IO::Async::Loop;
-use IO::Async::HTTP2::Framer;
+use HTTP2::Draft::Framer;
 
 use Data::Dumper;
 

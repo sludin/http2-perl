@@ -22,6 +22,11 @@ sub http_version
   return "HTTP-draft-04/2.0";
 }
 
+sub error
+{
+  die @_;
+}
+
 sub hex_print
 {
   my $data = shift;
