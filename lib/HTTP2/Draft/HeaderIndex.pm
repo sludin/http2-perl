@@ -202,7 +202,7 @@ sub find_nv
 sub find_i
 {
   my $self = shift;
-  my $i = shift;
+  my $i    = shift;
   return $self->{dynamic_i}->{$i}
 }
 

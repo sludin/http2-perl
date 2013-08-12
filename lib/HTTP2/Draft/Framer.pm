@@ -120,9 +120,9 @@ sub IO::Async::Loop::HTTP2_listen
 
     my $conn = $framer->{conn};
 
-    HTTP2::Draft::hex_print( $$buffref );
+#    HTTP2::Draft::hex_print( $$buffref );
 #print Dumper( $framer );
-print "Conn state == $conn->{state}\n";
+    $log->info( "Conn state == $conn->{state}" );
 
     # TODO: dispel the magic 1
     # state 1: tls connection established, nothing has been read or written

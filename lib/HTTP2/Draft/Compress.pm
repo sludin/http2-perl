@@ -241,7 +241,12 @@ sub extract_string
 {
   my $bytes_ref = shift;
 
+#  print Dumper( $bytes_ref );
+
   my $len = decode_int( $bytes_ref, 7 );
+
+#  print "Len = ", $len, "\n";
+
   my $string = pack( "c*", @{$bytes_ref}[0 .. ($len)-1] );
 
   # Consume the bytes
@@ -298,6 +303,8 @@ sub get_token
 
   return if ( @$bytes_ref == 0 );
 
+
+  
   my $op = shift @$bytes_ref;
 
   my $token = {
@@ -361,11 +368,17 @@ sub get_token
   {
     debug( "Literal Header with Substitution Indexing\n" );
 
-    push @$bytes_ref, $op;
+    unshift @$bytes_ref, $op;
 
     my $index = decode_int( $bytes_ref, 6 ) - 1;
+
     my $substituted_index = decode_int( $bytes_ref, 8 );
+
     my $value = extract_string( $bytes_ref );
+
+    $token->{index} = $index;
+    $token->{substituted_index} = $substituted_index;
+    $token->{value_literal} = $value;
   }
   else
   {
@@ -386,6 +399,13 @@ sub inflate
   my $ws;
 
 
+#  for ( @bytes ) {
+#    printf "%02X", $_;
+#  }
+#  print "\n";
+
+# HTTP2::Draft::hex_print( $block );
+  
   while( my $token = get_token( \@bytes ) )
   {
     my $op = $token->{op};
@@ -466,6 +486,9 @@ sub inflate
 
 
       my $nvkey = "$name:$value";
+
+#      print "nvkey: $nvkey\n";
+
       $ws->{$nvkey} = { indexed => 1,
                         value   => $value,
                         name    => $name };
@@ -485,6 +508,7 @@ sub inflate
          $self->{reference}->{$n}->{indexed} )
     {
       delete $self->{reference}->{$n};
+      $self->{reference}->{$n} = $ws->{$nvkey};
     }
     else
     {
@@ -499,6 +523,9 @@ sub inflate
     $headers->{$n} = $v;
   }
 
+
+#  print Dumper( $headers );
+  
   return $headers;
 }
 

@@ -38,7 +38,7 @@ sub read_frame
 {
   my $self   = shift;
   my $buffer = shift;
-  print "read_frame\n";
+#  print "read_frame\n";
 
   # TODO: Do something about this magic number 8
   if ( length( $buffer ) < 8 ) {
