@@ -8,7 +8,7 @@ use Data::Dumper;
 my $bits = shift;
 my @bytes = map { hex($_) } @ARGV;
 
-my $n = HTTP2::Draft::Compress::decode_int2( \@bytes, $bits  );
+my $n = HTTP2::Draft::Compress::decode_int( \@bytes, $bits  );
 
 print $n, "\n";
 

@@ -5,16 +5,85 @@ use HTTP2::Draft::Compress;
 
 use Data::Dumper;
 
-my @bytes = map { hex($_) } @ARGV;
+sub compare_hash
+{
+  my $hash_a = shift;
+  my $hash_b = shift;
 
-my $block = pack "C*", @bytes;
+  for my $name ( keys %$hash_a ) {
+    if ( $hash_a->{$name} ne $hash_b->{$name} ) {
+      return 0;
+    }
+  }
 
-my $compress = HTTP2::Draft::Compress->new( request => 1 );
-$compress->inflate( $block );
+  for my $name ( keys %$hash_b ) {
+    if ( $hash_a->{$name} ne $hash_b->{$name} ) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+sub inflate_ok
+{
+  my $test = shift;
+
+  my $block = $test->[0];
+  my $headers = $test->[1];
+
+  my $compress = HTTP2::Draft::Compress->new( request => 1 );
+  my $h = $compress->inflate( $block );
+
+  if ( compare_hash( $headers, $h ) ) {
+    pass( "Headers match" );
+  }
+  else {
+    fail( "Headers do not match" );
+  }
+
+}
 
 
 
 
+
+my $block = "84440c2f73696d706c652e68746d6c43" .
+            "0e3132372e302e302e313a3834343381" .
+            "4d514d6f7a696c6c612f352e3020284d" .
+            "6163696e746f73683b20496e74656c20" .
+            "4d6163204f5320582031302e383b2072" .
+            "763a32352e3029204765636b6f2f3230" .
+            "3133303830342046697265666f782f32" .
+            "352e30463f746578742f68746d6c2c61" .
+            "70706c69636174696f6e2f7868746d6c" .
+            "2b786d6c2c6170706c69636174696f6e" .
+            "2f786d6c3b713d302e392c2a2f2a3b71" .
+            "3d302e38490e656e2d55532c656e3b71" .
+            "3d302e35";
+
+
+my $headers = {
+          'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:25.0) Gecko/20130804 Firefox/25.0',
+          'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          ':scheme' => 'https',
+          'accept-language' => 'en-US,en;q=0.5',
+          ':host' => '127.0.0.1:8443',
+          ':method' => 'GET',
+          ':path' => '/simple.html'
+        };
+
+my $b = pack( "C*", map { hex($_) } unpack( "(a2)*", $block ) );
+
+
+my @tests = (
+             [ $block, $b ],
+             );
+
+
+for my $test ( @tests ) {
+  inflate_ok( $test );
+}
 
 
 
