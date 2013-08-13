@@ -321,6 +321,7 @@ sub on_frame
 
   return 0;
 }
+# 008 cset 818e55d57333
 
 sub build_headers
 {
@@ -337,7 +338,6 @@ sub response
 
   my $headers = {};
 
-  
   my $scan = sub {
     my ( $k, $v ) = @_;
     $headers->{lc($k)} = $v;
@@ -359,10 +359,12 @@ sub response
   $stream->{conn}->write_frame( $reply );
 
 
-  $stream->{conn}->write_data( $stream->{streamid}, $response->content() );
+  my $content = $response->content();
+
+  $stream->{conn}->write_data( $stream->{streamid}, $content );
 
   $count++;
-  
+
 }
 
 

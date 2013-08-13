@@ -186,7 +186,7 @@ sub write_data
   my $streamid = shift;
   my $data     = shift || "";
 
-  Readonly::Scalar my $MAX_FRAME_SIZE => (2**16)-1;
+  Readonly::Scalar my $MAX_FRAME_SIZE => (2**14)-1;
 
   my $stream = $self->{streams}->{$streamid};
 
@@ -256,6 +256,9 @@ sub write_data
       # TODO: This is called END_STREAM in HTTP/2.0
       my $fin = length( $stream->{buffer} ) ? 0 : 1;
 
+#      $fin = 1;
+#      $stream->{buffer} = "";
+      
       $log->debug( "Stream $stream->{streamid}: fin = $fin" );
 
       my $frame = HTTP2::Draft::Frame->new( DATA,
