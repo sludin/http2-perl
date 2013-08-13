@@ -129,6 +129,37 @@ sub deflate
 
   my @hblock;
 
+  for my $name ( keys %$headers ) {
+    my $value = $headers->{$name};
+    my @tmp;
+
+    debug( "Deflate: Encoding $name: $value\n" );
+
+    push @tmp, 0x60;
+    push @tmp, encode_len_string( $name );
+    push @tmp, encode_len_string( $value );
+
+    debug( "Deflate: Adding:" );
+    HTTP2::Draft::hex_print( pack "C*", @tmp ) if $debug_compression;;
+
+    push @hblock, @tmp;
+  }
+
+  return pack "C*", @hblock;
+}
+
+
+sub deflate2
+{
+  my $self    = shift;
+  my $headers = shift;
+
+  #print Dumper( $headers );
+
+  my $ws;
+
+  my @hblock;
+
   for my $name ( keys %$headers )
   {
     my @tmp;
@@ -150,6 +181,9 @@ sub deflate
 
         # TODO: this needs integer ecoding.  For testing as long as we stay under 127 we shoudl be OK
         push @tmp, ($entry->[0]) | 0x80;
+      }
+      else {
+        debug( "Already exists in the refernce set.  Not adding" );
       }
     }
     else
@@ -211,21 +245,21 @@ sub deflate
       my $entry = $self->{index}->find_nv($self->{reference}->{$nvkey}->{name},
                                           $self->{reference}->{$nvkey}->{value} );
 
-      debug( "Deflate: $nvkey in reference set and not in working set.  Adding to header block.\n" );
+#      debug( "Deflate: $nvkey in reference set and not in working set.  Adding to header block.\n" );
 
 #      print Dumper( $entry );
       # TODO: pack ints over 128
-      push @hblock, ($entry->[0]) | 0x80;
+#      push @hblock, ($entry->[0]) | 0x80;
     }
   }
 
   #print Dumper( $self->{reference} );
   #print Dumper( $ws );
 
-  for my $nvkey ( keys %$ws )
-  {
+#  for my $nvkey ( keys %$ws )
+#  {
     $self->{reference} = $ws;
-  }
+#  }
 
 #  print Dumper( $self->{reference} );
 
@@ -332,7 +366,25 @@ sub get_token
   }
   elsif ( ($op & 0xE0) == 0x60 )
   {
-    die "Should not be here yet";
+    debug( "Literal Header without indexing" );
+
+    if ( $op == 0x60 ) {
+      my ( $name, $value ) = extract_nv( $bytes_ref );
+
+      $token->{name_literal} = $name;
+      $token->{value_literal} = $value;
+    }
+    else {
+      unshift @$bytes_ref, $op & 0x1F;
+
+      my $index = decode_int( $bytes_ref, 5 ) - 1;
+      my $value = extract_string( $bytes_ref );
+
+      $token->{name_index} = $index;
+      $token->{value_literal} = $value;
+    }
+
+    
   }
   elsif ( ($op & 0xE0) == 0x40 )
   {
@@ -431,7 +483,39 @@ sub inflate
                         name    => $name };
     }
     elsif ( ($op & 0xE0) == 0x60 ) {
-      die "Not implemented.  Yet";
+      if ( $op == 0x60 ) {
+
+        my $name  = $token->{name_literal};
+
+        my $value = $token->{value_literal};
+        my $nvkey = "$name:$value";
+
+        $ws->{$nvkey} = { indexed => 0,
+                          value   => $value,
+                          name    => $name };
+
+      }
+      else {
+        my $index = $token->{name_index};
+
+        my $entry = $self->{index}->find_i($index);
+
+        debug( "Name index: $index" );
+
+        if ( ! $entry ) {
+          die "Entry $index not found in index";
+        }
+
+        my $name  = $entry->[1];
+        my $value = $token->{value_literal};
+        my $nvkey = "$name:$value";
+
+        $ws->{$nvkey} = { indexed => 0,
+                          value   => $value,
+                          name    => $name };
+
+
+      }
     }
     elsif ( ($op & 0xE0) == 0x40 ) {
       debug( "Literal Header with Incremental Indexing\n" );

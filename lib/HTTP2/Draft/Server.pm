@@ -327,6 +327,8 @@ sub build_headers
 
 }
 
+my $count = 0;
+
 sub response
 {
   my $self     = shift;
@@ -335,6 +337,7 @@ sub response
 
   my $headers = {};
 
+  
   my $scan = sub {
     my ( $k, $v ) = @_;
     $headers->{lc($k)} = $v;
@@ -354,8 +357,12 @@ sub response
 
 
   $stream->{conn}->write_frame( $reply );
+
+
   $stream->{conn}->write_data( $stream->{streamid}, $response->content() );
 
+  $count++;
+  
 }
 
 

@@ -30,19 +30,6 @@ our $VERSION = '0.03';
 
 
 
-######
-# Frame construction methods
-# From the Wire: ( reading )
-#   1) 8 byte header is read from the socket
-#   2) This is sent to unpack which creates an 'empty' frame of the correct type
-#   3) If the frame has data, read the data and then call the data method
-#      of the frame
-# From Scratch: ( writing )
-#   1) Call the constructor with the relevant frame header information.
-#      If the infotmation is not available ( like length, flags, etc )...
-#
-
-
 
 
 use constant {
@@ -180,6 +167,7 @@ sub pack
   my $wire = pack( "nCCN", $self->{length}, $self->{type},
                    $self->{flags}, ($self->{streamid} & 0x7FFFFFF) );
 
+  #HTTP2::Draft::hex_print( $wire );
   return $wire;
 }
 

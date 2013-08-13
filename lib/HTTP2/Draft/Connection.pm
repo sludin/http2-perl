@@ -57,6 +57,7 @@ sub _init
   #       feels awkward.
   $self->{compressor}->{request}  = HTTP2::Draft::Compress->new( request => 1 );
   $self->{compressor}->{response} = HTTP2::Draft::Compress->new( response => 1 );
+  $self->{compressor}->{response_test} = HTTP2::Draft::Compress->new( response => 1 );
 
   # TODO: shoudl this be part of settings?
   $self->{default_window} = 1024 * 64;
@@ -148,10 +149,18 @@ sub write_frame
       $block = "";
     }
 
+#    HTTP2::Draft::hex_print( $block );
+    
     $frame->{data}   = $block;
     $frame->{length} = length( $block );
 
-#    $compressor->inflate( $block );
+#    my $test_key = $direction . "_test";
+#    if ( exists $self->{compressor}->{$test_key} ) {
+#      my $test_compressor = $self->{compressor}->{$test_key};
+#      my $headers = $test_compressor->inflate( $block );
+#      print Data::Dumper::Dumper( $headers );
+#    }
+
 
   }
 

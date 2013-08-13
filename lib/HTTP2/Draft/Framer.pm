@@ -192,7 +192,7 @@ sub IO::Async::Loop::HTTP2_listen
     #         print Dumper( $framer );
 
     $framer->configure( on_read   => $on_read,
-                        on_read_error => sub { print "READ ERROR\n" },
+                        on_read_error => sub { print "READ ERROR: " . join( ", ", @_ ), "\n" },
                         on_write_error => sub { print "WRITE ERROR\n" },
                         autoflush => 1,
                         write_all => 1 );
