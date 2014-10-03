@@ -11,13 +11,13 @@ it is useful nonetheless.
 UPDATE: HEADER COMPRESSION IS SIMPLY BROKEN.  It will work
 in some cases, but far from all.
 
-This is not a complete implemtation of Draft-04 of HTTP/2.0.  
+This is not a complete implemtation of Draft-04 of HTTP/2.0.
 The expecation is this will evolve in the near future to approach
-completeness.  
+completeness.
 
 This does not yet inclue a Makefile.pl.  It will.  Soon.
-For now it will need to be installed by hand which is probably 
-best for something in this state.  Look at the usage in 
+For now it will need to be installed by hand which is probably
+best for something in this state.  Look at the usage in
 http2client.pl and http2server.pl for examples.
 
 --------------------------
@@ -54,7 +54,7 @@ HTTP2::Draft::Stream
 HTTP2::Draft::Connection
 HTTP2::Draft::Frame
 
-Connection, Frame, and stream implementation.  Most of the heavy 
+Connection, Frame, and stream implementation.  Most of the heavy
 lifting occurs in Connection.  Each Frame has a sub class in
 Frame.pm
 
@@ -68,7 +68,7 @@ IO::Async::HTTP2::Framer
 IO::Async::HTTP2::FramerStream
 
 IO::Async moduels for reading and writing HTTP/2.0 frames on the
-wire.  
+wire.
 
 --------------------------
 
@@ -133,9 +133,4 @@ YOUR LOCAL LAW. UNLESS REQUIRED BY LAW, NO COPYRIGHT HOLDER OR
 CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
 CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
-
-
 
