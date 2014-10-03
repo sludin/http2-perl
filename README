@@ -1,6 +1,6 @@
 Version 0.03;
 
-Notice: Work in progress and inapproprate for human consumption.
+Notice: Work in progress and inappropriate for human consumption.
 
 -------------------------
 
@@ -11,14 +11,11 @@ it is useful nonetheless.
 UPDATE: HEADER COMPRESSION IS SIMPLY BROKEN.  It will work
 in some cases, but far from all.
 
-This is not a complete implemtation of Draft-04 of HTTP/2.0.  
-The expecation is this will evolve in the near future to approach
-completeness.  
+This is not a complete implementation of Draft-04 of HTTP/2.0.
+The expectation is this will evolve in the near future to approach
+completeness.
 
-This does not yet inclue a Makefile.pl.  It will.  Soon.
-For now it will need to be installed by hand which is probably 
-best for something in this state.  Look at the usage in 
-http2client.pl and http2server.pl for examples.
+Look at the usage in http2client.pl and http2server.pl for examples.
 
 --------------------------
 
@@ -34,16 +31,16 @@ To install this module, run the following commands:
 --------------------------
 
 This bundle provides a number of libraries intended to
-provide the basic necessitied for an HTTP/2.0 implementation.
+provide the basic necessities for an HTTP/2.0 implementation.
 The modules currently are as follows.
 
 HTTP2::Draft
 
-Base module that provide a namespace and basic functinality
+Base module that provide a namespace and basic functionality
 
 HTTP2::Draft::Log
 
-Provides a wrapperl for Log::Log4perl;
+Provides a wrapper for Log::Log4perl;
 
 HTTP2::Draft::Compress
 HTTP2::Draft::HeaderIndex
@@ -54,21 +51,21 @@ HTTP2::Draft::Stream
 HTTP2::Draft::Connection
 HTTP2::Draft::Frame
 
-Connection, Frame, and stream implementation.  Most of the heavy 
+Connection, Frame, and stream implementation.  Most of the heavy
 lifting occurs in Connection.  Each Frame has a sub class in
 Frame.pm
 
 HTTP2::Draft::Server
 HTTP2::Draft::Client
 
-An attempt to wrap the above code in a moduel to make Server and
-Client implementaions simple.
+An attempt to wrap the above code in a module to make Server and
+Client implementations simple.
 
 IO::Async::HTTP2::Framer
 IO::Async::HTTP2::FramerStream
 
-IO::Async moduels for reading and writing HTTP/2.0 frames on the
-wire.  
+IO::Async modules for reading and writing HTTP/2.0 frames on the
+wire.
 
 --------------------------
 
@@ -86,7 +83,7 @@ From the ./apps directory:
 
 perl http2server.pl
 
-Thsi defaults to useing port 8443.
+This defaults to using port 8443.
 
 perl http2client.pl http://127.0.0.1:8443
 
@@ -99,7 +96,7 @@ LICENSE AND COPYRIGHT
 Copyright (C) 2013 Stephen Ludin
 
 This program is free software; you can redistribute it and/or modify it
-under the terms of the the Artistic License (2.0). You may obtain a
+under the terms of the Artistic License (2.0). You may obtain a
 copy of the full license at:
 
 L<http://www.perlfoundation.org/artistic_license_2_0>
@@ -133,9 +130,4 @@ YOUR LOCAL LAW. UNLESS REQUIRED BY LAW, NO COPYRIGHT HOLDER OR
 CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
 CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
-
-
 
