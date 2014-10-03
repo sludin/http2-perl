@@ -15,10 +15,7 @@ This is not a complete implementation of Draft-04 of HTTP/2.0.
 The expectation is this will evolve in the near future to approach
 completeness.
 
-This does not yet include a Makefile.pl.  It will.  Soon.
-For now it will need to be installed by hand which is probably
-best for something in this state.  Look at the usage in
-http2client.pl and http2server.pl for examples.
+Look at the usage in http2client.pl and http2server.pl for examples.
 
 --------------------------
 
